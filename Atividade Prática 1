@@ -1,0 +1,75 @@
+// ===== Modelo de Entrega =====
+data class Encomenda(val codigo: String, var situacao: StatusEncomenda)
+
+// ===== State Pattern =====
+interface StatusEncomenda {
+    fun avancar(encomenda: Encomenda)
+}
+
+class Recebida : StatusEncomenda {
+    override fun avancar(encomenda: Encomenda) {
+        println("Encomenda ${encomenda.codigo} foi recebida no centro de triagem.")
+        encomenda.situacao = EmRota()
+    }
+}
+
+class EmRota : StatusEncomenda {
+    override fun avancar(encomenda: Encomenda) {
+        println("Encomenda ${encomenda.codigo} está a caminho do destino.")
+        encomenda.situacao = Entregue()
+    }
+}
+
+class Entregue : StatusEncomenda {
+    override fun avancar(encomenda: Encomenda) {
+        println("Encomenda ${encomenda.codigo} entregue com sucesso!")
+    }
+}
+
+// ===== Strategy Pattern para rastreamento =====
+interface MetodoRastreio {
+    fun rastrear(encomenda: Encomenda)
+}
+
+class RastreioBasico : MetodoRastreio {
+    override fun rastrear(encomenda: Encomenda) {
+        println("Rastreando encomenda ${encomenda.codigo} (modo básico)...")
+    }
+}
+
+class RastreioPremium : MetodoRastreio {
+    override fun rastrear(encomenda: Encomenda) {
+        println("Rastreando encomenda ${encomenda.codigo} com GPS em tempo real!")
+    }
+}
+
+
+// ===== Sistema de Logística =====
+class CentralLogistica(var rastreio: MetodoRastreio) {
+    fun atualizarEncomenda(encomenda: Encomenda) {
+        encomenda.situacao.avancar(encomenda)
+    }
+
+    fun rastrearEncomenda(encomenda: Encomenda) {
+        rastreio.rastrear(encomenda)
+    }
+}
+
+
+// ===== Execução =====
+fun main() {
+    val encomendaA = Encomenda("A001", Recebida())
+    val encomendaB = Encomenda("B002", Recebida())
+
+    val central = CentralLogistica(RastreioBasico())
+
+    // Processando encomendas sem condicionais
+    central.atualizarEncomenda(encomendaA) // Recebida -> EmRota
+    central.atualizarEncomenda(encomendaA) // EmRota -> Entregue
+    central.atualizarEncomenda(encomendaA) // Entregue
+
+    // Mudando método de rastreio sem condicionais
+    central.rastreio = RastreioPremium()
+    central.rastrearEncomenda(encomendaA)
+    central.rastrearEncomenda(encomendaB)
+}
