@@ -1,75 +1,60 @@
-// ===== Modelo de Entrega =====
-data class Encomenda(val codigo: String, var situacao: StatusEncomenda)
-
-// ===== State Pattern =====
-interface StatusEncomenda {
+// Estados da encomenda
+interface Status {
     fun avancar(encomenda: Encomenda)
 }
 
-class Recebida : StatusEncomenda {
+class Recebida : Status {
     override fun avancar(encomenda: Encomenda) {
-        println("Encomenda ${encomenda.codigo} foi recebida no centro de triagem.")
         encomenda.situacao = EmRota()
     }
 }
 
-class EmRota : StatusEncomenda {
+class EmRota : Status {
     override fun avancar(encomenda: Encomenda) {
-        println("Encomenda ${encomenda.codigo} está a caminho do destino.")
         encomenda.situacao = Entregue()
     }
 }
 
-class Entregue : StatusEncomenda {
-    override fun avancar(encomenda: Encomenda) {
-        println("Encomenda ${encomenda.codigo} entregue com sucesso!")
-    }
+class Entregue : Status {
+    override fun avancar(encomenda: Encomenda) { }
 }
 
-// ===== Strategy Pattern para rastreamento =====
-interface MetodoRastreio {
+// Encomenda
+data class Encomenda(var situacao: Status)
+
+// Estratégias de rastreio
+interface Rastreamento {
     fun rastrear(encomenda: Encomenda)
 }
 
-class RastreioBasico : MetodoRastreio {
-    override fun rastrear(encomenda: Encomenda) {
-        println("Rastreando encomenda ${encomenda.codigo} (modo básico)...")
-    }
+class Basico : Rastreamento {
+    override fun rastrear(encomenda: Encomenda) { }
 }
 
-class RastreioPremium : MetodoRastreio {
-    override fun rastrear(encomenda: Encomenda) {
-        println("Rastreando encomenda ${encomenda.codigo} com GPS em tempo real!")
-    }
+class Avancado : Rastreamento {
+    override fun rastrear(encomenda: Encomenda) { }
 }
 
-
-// ===== Sistema de Logística =====
-class CentralLogistica(var rastreio: MetodoRastreio) {
-    fun atualizarEncomenda(encomenda: Encomenda) {
+// Sistema de logística
+class Logistica(var rastreio: Rastreamento) {
+    fun processar(encomenda: Encomenda) {
         encomenda.situacao.avancar(encomenda)
     }
 
-    fun rastrearEncomenda(encomenda: Encomenda) {
+    fun rastrear(encomenda: Encomenda) {
         rastreio.rastrear(encomenda)
     }
 }
 
-
-// ===== Execução =====
+// Uso
 fun main() {
-    val encomendaA = Encomenda("A001", Recebida())
-    val encomendaB = Encomenda("B002", Recebida())
+    val encomenda1 = Encomenda(Recebida())
+    val sistema = Logistica(Basico())
 
-    val central = CentralLogistica(RastreioBasico())
+    sistema.processar(e1) // Recebida -> EmRota
+    sistema.processar(e1) // EmRota -> Entregue
+    sistema.processar(e1) // Entregue
 
-    // Processando encomendas sem condicionais
-    central.atualizarEncomenda(encomendaA) // Recebida -> EmRota
-    central.atualizarEncomenda(encomendaA) // EmRota -> Entregue
-    central.atualizarEncomenda(encomendaA) // Entregue
-
-    // Mudando método de rastreio sem condicionais
-    central.rastreio = RastreioPremium()
-    central.rastrearEncomenda(encomendaA)
-    central.rastrearEncomenda(encomendaB)
+    sistema.rastreio = Avancado()
+    sistema.rastrear(e1)
 }
