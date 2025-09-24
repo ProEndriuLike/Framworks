@@ -1,0 +1,43 @@
+import java.util.*;
+
+public class LabirintoSimples {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int totalMapas = 3;
+        final int[] tempo = {0};
+
+        // Thread para contar tempo
+        Thread t = new Thread(() -> {
+            try { while(true){ Thread.sleep(1000); tempo[0]++; } }
+            catch (InterruptedException e) {}
+        });
+        t.start();
+
+        for(int mapa=1; mapa<=totalMapas; mapa++){
+            int tam = 5 + mapa;
+            char[][] lab = new char[tam][tam];
+            Random rand = new Random();
+            for(int i=0;i<tam;i++) Arrays.fill(lab[i], '.');
+            lab[0][0]='E'; lab[tam-1][tam-1]='S';
+            for(int k=0;k<mapa*3;k++){ int x=rand.nextInt(tam), y=rand.nextInt(tam); if(lab[x][y]=='.') lab[x][y]='#'; }
+
+            int x=0,y=0;
+            while(lab[x][y]!='S'){
+                for(int i=0;i<tam;i++){ for(int j=0;j<tam;j++) System.out.print((i==x&&j==y?"P":lab[i][j])+" "); System.out.println(); }
+                System.out.println("Mover (W/A/S/D): "); String m=sc.nextLine();
+                switch(m.toLowerCase()){
+                    case "w": if(x>0&&lab[x-1][y]!='#') x--; break;
+                    case "s": if(x<tam-1&&lab[x+1][y]!='#') x++; break;
+                    case "a": if(y>0&&lab[x][y-1]!='#') y--; break;
+                    case "d": if(y<tam-1&&lab[x][y+1]!='#') y++; break;
+                }
+                System.out.println("Tempo: "+tempo[0]+"s");
+            }
+            System.out.println("Saída encontrada!");
+        }
+
+        t.interrupt();
+        System.out.println("Parabéns! Você venceu todos os labirintos em "+tempo[0]+" segundos!");
+        sc.close();
+    }
+}
